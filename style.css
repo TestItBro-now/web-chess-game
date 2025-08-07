@@ -37,6 +37,9 @@ h1 {
   grid-template-rows: repeat(8, 60px);
   border: 4px solid #444;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  /* Establish this container as the positioning context for absolute
+     elements used in AI move animations. */
+  position: relative;
 }
 
 /* Base styling for each square */
@@ -81,4 +84,18 @@ h1 {
 /* Highlight the king’s square when in check */
 .check {
   background-color: #ffb3b3 !important;
+}
+
+/*
+ * Temporary piece used for animating AI moves.
+ * This element is absolutely positioned inside the board container and
+ * transitions smoothly from one square to another.  The transition
+ * properties mirror the ones set in the JavaScript animation helper.
+ */
+.anim-piece {
+  position: absolute;
+  z-index: 10;
+  font-size: 42px;
+  pointer-events: none;
+  transition: top 0.5s linear, left 0.5s linear;
 }

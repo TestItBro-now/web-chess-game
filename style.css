@@ -1,0 +1,84 @@
+/*
+ * Styling for the web based chess game.  The goal is to provide a playful
+ * appearance while keeping the board clear and easy to read.  The board
+ * uses a CSS grid to layout eight columns and eight rows.  Light and dark
+ * squares receive contrasting background colours, and pieces are rendered
+ * via Unicode symbols.  Highlight classes are used to indicate the
+ * selected piece, potential moves, captures and check.  Feel free to
+ * adjust the colours below to taste.
+ */
+
+body {
+  font-family: Arial, sans-serif;
+  background: #fafafa;
+  color: #333;
+  margin: 0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h1 {
+  margin-bottom: 10px;
+}
+
+#status {
+  margin-bottom: 10px;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+/* Board container uses grid layout to create an 8×8 board.  Each square
+   is a grid cell. */
+#board {
+  display: grid;
+  grid-template-columns: repeat(8, 60px);
+  grid-template-rows: repeat(8, 60px);
+  border: 4px solid #444;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Base styling for each square */
+.square {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Increase the font size so chess pieces appear larger within their
+     squares.  A value around 42px works well with 60px squares. */
+  font-size: 42px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+/* Colours for the squares.  Feel free to update these values to achieve
+   different moods.  Pastel yellows and browns give a warm, playful look. */
+.light {
+  background-color: #f6e8b1;
+}
+
+.dark {
+  background-color: #b79263;
+}
+
+/* Highlight when a piece is selected */
+.selected {
+  outline: 4px solid #4aa3df;
+}
+
+/* Highlight valid moves for the selected piece */
+.move {
+  outline: 4px dashed #4caf50;
+}
+
+/* Highlight capture moves separately for clarity */
+.capture {
+  outline: 4px dashed #e53935;
+}
+
+/* Highlight the king’s square when in check */
+.check {
+  background-color: #ffb3b3 !important;
+}

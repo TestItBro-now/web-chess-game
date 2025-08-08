@@ -56,6 +56,14 @@ h1 {
   box-sizing: border-box;
 }
 
+/* Images used for the pieces.  They are slightly smaller than the
+   containing square to provide padding around the edges. */
+.piece-img {
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+}
+
 /* Colours for the squares.  Feel free to update these values to achieve
    different moods.  Pastel yellows and browns give a warm, playful look. */
 .light {
@@ -66,19 +74,35 @@ h1 {
   background-color: #b79263;
 }
 
-/* Highlight when a piece is selected */
+/* Highlight when a piece is selected.  Use a semi‑transparent blue tint
+   that fades in and out for a gentle pulsing effect. */
 .selected {
-  outline: 4px solid #4aa3df;
+  animation: selectedFade 1s ease-in-out infinite alternate;
 }
 
-/* Highlight valid moves for the selected piece */
+/* Tint valid move squares with a green shade that pulses. */
 .move {
-  outline: 4px dashed #4caf50;
+  animation: moveFade 1s ease-in-out infinite alternate;
 }
 
-/* Highlight capture moves separately for clarity */
+/* Tint capture moves with a red shade that pulses. */
 .capture {
-  outline: 4px dashed #e53935;
+  animation: captureFade 1s ease-in-out infinite alternate;
+}
+
+@keyframes selectedFade {
+  from { background-color: rgba(74, 163, 223, 0.4); }
+  to   { background-color: rgba(74, 163, 223, 0.8); }
+}
+
+@keyframes moveFade {
+  from { background-color: rgba(76, 175, 80, 0.4); }
+  to   { background-color: rgba(76, 175, 80, 0.8); }
+}
+
+@keyframes captureFade {
+  from { background-color: rgba(229, 57, 53, 0.4); }
+  to   { background-color: rgba(229, 57, 53, 0.8); }
 }
 
 /* Highlight the king’s square when in check */
@@ -95,7 +119,8 @@ h1 {
 .anim-piece {
   position: absolute;
   z-index: 10;
-  font-size: 42px;
+  width: 40px;
+  height: 40px;
   pointer-events: none;
   transition: top 0.5s linear, left 0.5s linear;
 }

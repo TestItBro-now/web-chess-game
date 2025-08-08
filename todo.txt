@@ -1,5 +1,0 @@
-TODO:
-1. Make the page display better on a portrait aspect mobile phone brwoser.  The board should fit to screen width and the move list should move underneath the board if there is no room to the side.
-2. Add a button to reset the game.
-3. Add a button to flip the board. This button should be able to be pressed multiple times to see the board from both sides.  Test that the controls still function as expected after flipping.
-4. Add a back arrow under the move list.  Pressing the back arrow should undo the previous move and update the board and move list according.

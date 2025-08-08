@@ -38,13 +38,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear existing list
     moveListEl.innerHTML = '';
     const history = game.history();
-    // History is a flat array of SAN strings.  Group into pairs
+    // History is a flat array of SAN strings.  Group into pairs.  Use the
+    // surrounding <ol> element to automatically number the moves, so we
+    // do not duplicate the turn number in the list item text.  Each
+    // list item contains the white move and, if present, the black move.
     for (let i = 0; i < history.length; i += 2) {
-      const turnNumber = i / 2 + 1;
       const whiteMove = history[i] || '';
       const blackMove = history[i + 1] || '';
       const li = document.createElement('li');
-      li.textContent = `${turnNumber}. ${whiteMove}${blackMove ? ' ' + blackMove : ''}`;
+      li.textContent = `${whiteMove}${blackMove ? ' ' + blackMove : ''}`;
       moveListEl.appendChild(li);
     }
   }
@@ -296,7 +298,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Determine the size of a square for centering the image.  Assume the
     // piece images are smaller than the square (see CSS for .piece-img).
     const squareSize = fromEl.clientWidth;
-    const imgSize = parseFloat(window.getComputedStyle(movingPiece).width);
+    // Since the .anim-piece class defines a fixed width and height in CSS,
+    // there is no need to query computed styles before the element is
+    // attached to the DOM (which may return 0).  Use the known size
+    // directly so the animation centres correctly.
+    const imgSize = 40;
     // Position the moving piece at the centre of the from square relative to the board
     movingPiece.style.left = (fromRect.left - boardRect.left + squareSize / 2 - imgSize / 2) + 'px';
     movingPiece.style.top = (fromRect.top - boardRect.top + squareSize / 2 - imgSize / 2) + 'px';

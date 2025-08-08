@@ -19,12 +19,14 @@ body {
   align-items: center;
 }
 
-/* Container that holds the board and the move list side by side. */
+/* Container that holds the board and the move list side by side.  On
+   small screens the layout switches to a columnar arrangement. */
 #game-container {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
 /* Container for the move list. */
@@ -64,8 +66,12 @@ h1 {
    is a grid cell. */
 #board {
   display: grid;
-  grid-template-columns: repeat(8, 60px);
-  grid-template-rows: repeat(8, 60px);
+  /* Use a CSS custom property for the size of each square.  The value
+     is capped at 60px and scales down with the viewport width (12.5vw
+     ensures the board fits on narrow screens). */
+  --s: min(60px, 12.5vw);
+  grid-template-columns: repeat(8, var(--s));
+  grid-template-rows: repeat(8, var(--s));
   border: 4px solid #444;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   /* Establish this container as the positioning context for absolute
@@ -75,14 +81,15 @@ h1 {
 
 /* Base styling for each square */
 .square {
-  width: 60px;
-  height: 60px;
+  width: var(--s);
+  height: var(--s);
   display: flex;
   align-items: center;
   justify-content: center;
   /* Increase the font size so chess pieces appear larger within their
-     squares.  A value around 42px works well with 60px squares. */
-  font-size: 42px;
+     squares.  Scale the font relative to the square size so icons
+     remain proportional on mobile devices. */
+  font-size: calc(var(--s) * 0.7);
   cursor: pointer;
   box-sizing: border-box;
 
@@ -95,8 +102,8 @@ h1 {
 /* Images used for the pieces.  They are slightly smaller than the
    containing square to provide padding around the edges. */
 .piece-img {
-  width: 40px;
-  height: 40px;
+  width: calc(var(--s) * 0.67);
+  height: calc(var(--s) * 0.67);
   pointer-events: none;
 }
 
@@ -157,8 +164,54 @@ h1 {
 .anim-piece {
   position: absolute;
   z-index: 10;
-  width: 40px;
-  height: 40px;
+  width: calc(var(--s) * 0.67);
+  height: calc(var(--s) * 0.67);
   pointer-events: none;
   transition: top 0.5s linear, left 0.5s linear;
+}
+
+/* Controls container for reset and flip buttons */
+#controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+/* Generic button styling */
+#controls button,
+#move-list-container button {
+  padding: 6px 12px;
+  font-size: 0.9em;
+  border: 2px solid #444;
+  background-color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+#controls button:hover,
+#move-list-container button:hover {
+  background-color: #f0f0f0;
+}
+
+/* Position the undo button below the move list */
+#move-list-container button {
+  margin-top: 10px;
+  width: 100%;
+}
+
+/* Responsive layout: stack the board and move list vertically on narrow screens */
+@media (max-width: 600px) {
+  #game-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  #move-list-container {
+    width: 100%;
+    max-height: none;
+    margin-top: 10px;
+  }
+  #controls {
+    justify-content: center;
+  }
 }

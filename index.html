@@ -15,6 +15,16 @@
       <h2>Moves</h2>
       <!-- Ordered list will display moves in standard algebraic notation. -->
       <ol id="move-list"></ol>
+      <!-- Back arrow to undo the previous move.  This button sits below
+           the move list and uses a Unicode arrow for its label. -->
+      <button id="undo-btn" title="Und&#x21A9; Undo Undo</button>
+    </div>
+    <!-- Controls container holds buttons for resetting the game and flipping
+         the board.  These appear alongside the board and move list on
+         larger screens and stack vertically on small screens. -->
+    <div id="controls">
+      <button id="reset-btn" title="Start a new game">Reset Game</button>
+      <button id="flip-btn" title="Flip the board orientation">Flip Board</button>
     </div>
   </div>
 

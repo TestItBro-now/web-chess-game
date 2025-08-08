@@ -23,8 +23,60 @@ document.addEventListener('DOMContentLoaded', () => {
   // Flag to indicate when the AI is thinking or animating a move.
   let aiThinking = false;
 
+  // Track whether the board is currently flipped.  When true, the
+  // visual orientation of the board is reversed.  The internal chess.js
+  // state is unaffected.
+  let flipped = false;
+
   let selectedSquare = null;
   let possibleMoves = [];
+
+  /**
+   * Reset the game to its initial state.  A new random side
+   * assignment is chosen and the board is redrawn.  If the AI is
+   * playing white it will immediately make the first move.
+   */
+  function resetGame() {
+    game.reset();
+    // Choose sides at random
+    playerColor = Math.random() < 0.5 ? 'w' : 'b';
+    aiColor = playerColor === 'w' ? 'b' : 'w';
+    selectedSquare = null;
+    possibleMoves = [];
+    aiThinking = false;
+    // Ensure board is unflipped on reset
+    flipped = false;
+    renderBoard();
+    updateMoveList();
+    if (aiColor === 'w') {
+      triggerAiMove();
+    }
+  }
+
+  /**
+   * Toggle the visual orientation of the board.  Flipping does not
+   * affect the internal game state, only the display order of ranks
+   * and files.  After toggling the board is re‑rendered.
+   */
+  function flipBoard() {
+    flipped = !flipped;
+    renderBoard();
+  }
+
+  /**
+   * Undo the last move.  If the AI is currently moving, undo is
+   * disabled.  After undoing, the board and move list are refreshed.
+   */
+  function undoLastMove() {
+    if (aiThinking) return;
+    const undone = game.undo();
+    if (!undone) return;
+    selectedSquare = null;
+    possibleMoves = [];
+    aiThinking = false;
+    renderBoard();
+    updateMoveList();
+  }
 
   /**
    * Update the move list display on the right of the board.  Chess.js
@@ -144,8 +196,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    for (let row = 0; row < 8; row++) {
-      for (let col = 0; col < 8; col++) {
+    // When the board is flipped, display the ranks and files in reverse
+    // order.  Compute display indices separately from the indices used
+    // to access the internal board state.  The square names are always
+    // based on the logical row/col, not the display orientation.
+    for (let rDisplay = 0; rDisplay < 8; rDisplay++) {
+      for (let cDisplay = 0; cDisplay < 8; cDisplay++) {
+        const row = flipped ? 7 - rDisplay : rDisplay;
+        const col = flipped ? 7 - cDisplay : cDisplay;
         const squareEl = document.createElement('div');
         squareEl.classList.add('square');
         squareEl.classList.add((row + col) % 2 === 0 ? 'light' : 'dark');
@@ -155,8 +213,6 @@ document.addEventListener('DOMContentLoaded', () => {
         squareEl.dataset.square = squareName;
         const piece = board[row][col];
         if (piece) {
-          // Insert an image representing the piece.  Using images rather
-          // than Unicode allows us to provide chunkier, cuter icons.
           const img = document.createElement('img');
           img.src = getImagePath(piece);
           img.classList.add('piece-img');
@@ -360,4 +416,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (aiColor === 'w') {
     triggerAiMove();
   }
+
+  // Attach event handlers for the reset, flip and undo buttons.  Use
+  // optional chaining in case the elements are not present in the DOM.
+  const resetButton = document.getElementById('reset-btn');
+  if (resetButton) resetButton.addEventListener('click', resetGame);
+  const flipButton = document.getElementById('flip-btn');
+  if (flipButton) flipButton.addEventListener('click', flipBoard);
+  const undoButton = document.getElementById('undo-btn');
+  if (undoButton) undoButton.addEventListener('click', undoLastMove);
 });

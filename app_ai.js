@@ -211,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear existing arrows but preserve marker definitions in the <defs> element.
     overlay.innerHTML = overlay.innerHTML.split('</defs>')[0] + '</defs>';
     if (!showThreats) return;
+    if (game.turn() != playerColor) return;
     // Determine which colour is the opponent
     const opponent = playerColor === 'w' ? 'b' : 'w';
     const boardState = game.board();
@@ -226,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
         y: rect.top - boardRect.top + rect.height / 2
       };
     }
+    game.setTurn(opponent);
     // Collect threat lines
     const threats = [];
     for (let r = 0; r < 8; r++) {
@@ -268,6 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
       line.setAttribute('marker-end', `url(#${markerId})`);
       overlay.appendChild(line);
     });
+    game.setTurn(playerColor);
   }
 
   /**

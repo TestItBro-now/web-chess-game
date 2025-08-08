@@ -105,9 +105,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function redoMove() {
     if (aiThinking || redoStack.length === 0) return;
     const move = redoStack.pop();
-    // Apply the move exactly as it was undone.  Chess.js allows passing
-    // the move object returned by undo() directly to move().
-    game.move(move);
+    // Apply the move exactly as it was undone.  Construct a minimal
+    // move object containing only the fields accepted by chess.js: from,
+    // to and promotion.  The move returned by undo() contains
+    // additional metadata but can still be used to populate these
+    // fields.  When promotion is undefined, omit the field.
+    const redoObj = { from: move.from, to: move.to };
+    if (move.promotion) {
+      redoObj.promotion = move.promotion;
+    }
+    game.move(redoObj);
     selectedSquare = null;
     possibleMoves = [];
     renderBoard();
@@ -146,41 +153,45 @@ document.addEventListener('DOMContentLoaded', () => {
    */
   function initThreatOverlay() {
     let overlay = document.getElementById('threat-overlay');
-    if (overlay) return;
-    overlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    overlay.setAttribute('id', 'threat-overlay');
-    overlay.setAttribute('width', '100%');
-    overlay.setAttribute('height', '100%');
-    overlay.style.position = 'absolute';
-    overlay.style.top = '0';
-    overlay.style.left = '0';
-    overlay.style.pointerEvents = 'none';
-    // Ensure the overlay appears above the board squares and below any
-    // animating piece by assigning a z-index between them.  The board
-    // squares have default stacking (0) and .anim-piece uses z-index 10
-    // in CSS, so choose an intermediate value here.
-    overlay.style.zIndex = '5';
-    // Define arrowhead markers
-    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    function createMarker(id, color) {
-      const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-      marker.setAttribute('id', id);
-      marker.setAttribute('markerWidth', '8');
-      marker.setAttribute('markerHeight', '8');
-      marker.setAttribute('refX', '6');
-      marker.setAttribute('refY', '3');
-      marker.setAttribute('orient', 'auto');
-      marker.setAttribute('markerUnits', 'strokeWidth');
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', 'M0,0 L6,3 L0,6 Z');
-      path.setAttribute('fill', color);
-      marker.appendChild(path);
-      defs.appendChild(marker);
+    // If the overlay element doesn't exist, create it and append to the board.
+    if (!overlay) {
+      overlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      overlay.setAttribute('id', 'threat-overlay');
+      overlay.setAttribute('width', '100%');
+      overlay.setAttribute('height', '100%');
+      overlay.style.position = 'absolute';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.pointerEvents = 'none';
+      // Place overlay above board squares but below moving pieces
+      overlay.style.zIndex = '5';
+      boardContainer.appendChild(overlay);
     }
-    createMarker('arrow-red', '#f44336');
-    createMarker('arrow-orange', '#ff9800');
-    overlay.appendChild(defs);
-    boardContainer.appendChild(overlay);
+    // Ensure marker definitions exist.  If no <defs> element is present,
+    // create one and populate it with the arrowhead markers.  If defs
+    // already exists, assume markers have been defined and do nothing.
+    let defs = overlay.querySelector('defs');
+    if (!defs) {
+      defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      function createMarker(id, color) {
+        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+        marker.setAttribute('id', id);
+        marker.setAttribute('markerWidth', '8');
+        marker.setAttribute('markerHeight', '8');
+        marker.setAttribute('refX', '6');
+        marker.setAttribute('refY', '3');
+        marker.setAttribute('orient', 'auto');
+        marker.setAttribute('markerUnits', 'strokeWidth');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M0,0 L6,3 L0,6 Z');
+        path.setAttribute('fill', color);
+        marker.appendChild(path);
+        defs.appendChild(marker);
+      }
+      createMarker('arrow-red', '#f44336');
+      createMarker('arrow-orange', '#ff9800');
+      overlay.appendChild(defs);
+    }
   }
 
   /**
@@ -189,9 +200,15 @@ document.addEventListener('DOMContentLoaded', () => {
    * coloured red and potential checking moves are coloured orange.
    */
   function updateThreatOverlay() {
+    // Ensure the SVG overlay exists before drawing arrows.  If it
+    // hasn't been created yet, call initThreatOverlay() now.  This
+    // allows updateThreatOverlay() to be called safely even if the
+    // threat overlay wasn't initialised earlier (for example, after
+    // reloading the page or when new features are added).
+    initThreatOverlay();
     const overlay = document.getElementById('threat-overlay');
     if (!overlay) return;
-    // Clear existing arrows
+    // Clear existing arrows but preserve marker definitions in the <defs> element.
     overlay.innerHTML = overlay.innerHTML.split('</defs>')[0] + '</defs>';
     if (!showThreats) return;
     // Determine which colour is the opponent

@@ -26,6 +26,12 @@
         <button id="threat-btn" title="Toggle opponent threats" class="control-btn"><img src="threat.png" alt="Threats"></button>
       </div>
       <div id="board"></div>
+      <!-- SVG overlay for threat arrows.  Placing this element directly
+           in the DOM ensures it is available immediately for
+           updateThreatOverlay() to draw into.  The overlay is
+           absolutely positioned via CSS to cover the board.  It
+           remains empty until arrows are drawn. -->
+      <svg id="threat-overlay"></svg>
     </div>
     <!-- Move list container sits to the right of the board on wider screens and
          below the board on narrow screens.  It no longer contains the undo

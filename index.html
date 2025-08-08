@@ -9,7 +9,14 @@
 <body>
   <h1>Web Chess Game</h1>
   <div id="status"></div>
-  <div id="board"></div>
+  <div id="game-container">
+    <div id="board"></div>
+    <div id="move-list-container">
+      <h2>Moves</h2>
+      <!-- Ordered list will display moves in standard algebraic notation. -->
+      <ol id="move-list"></ol>
+    </div>
+  </div>
 
   <!-- Load the chess.js library from a CDN for move validation and game logic -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>

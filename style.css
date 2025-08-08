@@ -19,6 +19,37 @@ body {
   align-items: center;
 }
 
+/* Container that holds the board and the move list side by side. */
+#game-container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+/* Container for the move list. */
+#move-list-container {
+  width: 200px;
+  max-height: 480px;
+  overflow-y: auto;
+  border: 2px solid #444;
+  padding: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+}
+
+#move-list-container h2 {
+  margin-top: 0;
+  font-size: 1.1em;
+  text-align: center;
+}
+
+/* Style the move list to remove default padding. */
+#move-list {
+  padding-left: 20px;
+  margin: 0;
+}
+
 h1 {
   margin-bottom: 10px;
 }
@@ -54,6 +85,11 @@ h1 {
   font-size: 42px;
   cursor: pointer;
   box-sizing: border-box;
+
+  /* Smoothly transition background colour when highlight classes are
+     added or removed.  This avoids continuous flashing and only
+     fades on state changes. */
+  transition: background-color 0.3s ease;
 }
 
 /* Images used for the pieces.  They are slightly smaller than the
@@ -74,35 +110,21 @@ h1 {
   background-color: #b79263;
 }
 
-/* Highlight when a piece is selected.  Use a semi‑transparent blue tint
-   that fades in and out for a gentle pulsing effect. */
+/* Highlight when a piece is selected.  Use a static semi‑transparent blue
+   tint.  The transition on .square will smoothly fade between normal and
+   highlighted states. */
 .selected {
-  animation: selectedFade 1s ease-in-out infinite alternate;
+  background-color: rgba(74, 163, 223, 0.5);
 }
 
-/* Tint valid move squares with a green shade that pulses. */
+/* Tint valid move squares with a green shade. */
 .move {
-  animation: moveFade 1s ease-in-out infinite alternate;
+  background-color: rgba(76, 175, 80, 0.5);
 }
 
-/* Tint capture moves with a red shade that pulses. */
+/* Tint capture moves with a red shade. */
 .capture {
-  animation: captureFade 1s ease-in-out infinite alternate;
-}
-
-@keyframes selectedFade {
-  from { background-color: rgba(74, 163, 223, 0.4); }
-  to   { background-color: rgba(74, 163, 223, 0.8); }
-}
-
-@keyframes moveFade {
-  from { background-color: rgba(76, 175, 80, 0.4); }
-  to   { background-color: rgba(76, 175, 80, 0.8); }
-}
-
-@keyframes captureFade {
-  from { background-color: rgba(229, 57, 53, 0.4); }
-  to   { background-color: rgba(229, 57, 53, 0.8); }
+  background-color: rgba(229, 57, 53, 0.5);
 }
 
 /* Highlight the king’s square when in check */

@@ -208,6 +208,15 @@ h1 {
   background-color: #f0f0f0;
 }
 
+/* When a control button is active (e.g. the threats toggle is on),
+   invert its colours to provide visual feedback.  We darken the
+   background and use a filter to invert the icon image colours. */
+#controls .control-btn.active {
+  background-color: #444;
+  border-color: #444;
+  filter: invert(1);
+}
+
 /* Icons inside control buttons should scale proportionally within the button. */
 #controls .control-btn img {
   width: 80%;

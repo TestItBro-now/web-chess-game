@@ -17,11 +17,13 @@
       <div id="controls">
         <!-- Each control button uses a small icon instead of text.  The icons are
              stored in the icons/ directory and will be uploaded to the repository. -->
-        <button id="undo-btn" title="Undo last move" class="control-btn"><img src="icons/undo.png" alt="Undo"></button>
-        <button id="redo-btn" title="Redo move" class="control-btn"><img src="icons/redo.png" alt="Redo"></button>
-        <button id="reset-btn" title="Start a new game" class="control-btn"><img src="icons/reset.png" alt="Reset"></button>
-        <button id="flip-btn" title="Flip board orientation" class="control-btn"><img src="icons/flip.png" alt="Flip"></button>
-        <button id="threat-btn" title="Toggle opponent threats" class="control-btn"><img src="icons/threat.png" alt="Threats"></button>
+        <!-- Icons are stored in the repository root.  Reference them directly
+             without the icons/ prefix. -->
+        <button id="undo-btn" title="Undo last move" class="control-btn"><img src="undo.png" alt="Undo"></button>
+        <button id="redo-btn" title="Redo move" class="control-btn"><img src="redo.png" alt="Redo"></button>
+        <button id="reset-btn" title="Start a new game" class="control-btn"><img src="reset.png" alt="Reset"></button>
+        <button id="flip-btn" title="Flip board orientation" class="control-btn"><img src="flip.png" alt="Flip"></button>
+        <button id="threat-btn" title="Toggle opponent threats" class="control-btn"><img src="threat.png" alt="Threats"></button>
       </div>
       <div id="board"></div>
     </div>

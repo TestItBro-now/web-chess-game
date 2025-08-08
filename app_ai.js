@@ -123,6 +123,17 @@ document.addEventListener('DOMContentLoaded', () => {
    */
   function toggleThreats() {
     showThreats = !showThreats;
+    // Toggle the active state on the threat button to indicate whether
+    // threat arrows are currently displayed.  When active, the button
+    // adopts inverted colours defined in the CSS.
+    const threatBtn = document.getElementById('threat-btn');
+    if (threatBtn) {
+      if (showThreats) {
+        threatBtn.classList.add('active');
+      } else {
+        threatBtn.classList.remove('active');
+      }
+    }
     updateThreatOverlay();
   }
 
@@ -594,6 +605,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 400);
   }
 
+  // Initialise the threat overlay before the initial render.  This
+  // ensures the SVG overlay exists when the board is first drawn.
+  initThreatOverlay();
   // Initial draw of the board
   renderBoard();
   // If the AI is playing white, let it move first
@@ -618,13 +632,4 @@ document.addEventListener('DOMContentLoaded', () => {
   if (redoButton) redoButton.addEventListener('click', redoMove);
   const threatButton = document.getElementById('threat-btn');
   if (threatButton) threatButton.addEventListener('click', toggleThreats);
-
-  // Create the SVG overlay used for drawing threat arrows.  This
-  // function checks if the overlay already exists before creating
-  // a new one, so it is safe to call multiple times.  Initialise
-  // immediately after the DOM is ready so that threat arrows can
-  // be drawn as soon as the user toggles the feature.
-  initThreatOverlay();
-  // Initially update the overlay (will show nothing until toggled on).
-  updateThreatOverlay();
 });

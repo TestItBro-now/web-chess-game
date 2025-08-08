@@ -196,9 +196,15 @@ document.addEventListener('DOMContentLoaded', () => {
    * coloured red and potential checking moves are coloured orange.
    */
   function updateThreatOverlay() {
+    // Ensure the SVG overlay exists before drawing arrows.  If it
+    // hasn't been created yet, call initThreatOverlay() now.  This
+    // allows updateThreatOverlay() to be called safely even if the
+    // threat overlay wasn't initialised earlier (for example, after
+    // reloading the page or when new features are added).
+    initThreatOverlay();
     const overlay = document.getElementById('threat-overlay');
     if (!overlay) return;
-    // Clear existing arrows
+    // Clear existing arrows but preserve marker definitions in the <defs> element.
     overlay.innerHTML = overlay.innerHTML.split('</defs>')[0] + '</defs>';
     if (!showThreats) return;
     // Determine which colour is the opponent

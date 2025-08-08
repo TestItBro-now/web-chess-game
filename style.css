@@ -170,34 +170,49 @@ h1 {
   transition: top 0.5s linear, left 0.5s linear;
 }
 
-/* Controls container for reset and flip buttons */
-#controls {
+/* Layout for the board wrapper.  The wrapper contains a row of control
+   buttons and the chessboard itself.  The controls remain above the
+   board regardless of the height of the move list. */
+#board-wrapper {
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* Generic button styling */
-#controls button,
-#move-list-container button {
-  padding: 6px 12px;
-  font-size: 0.9em;
+/* Controls container holds the small icon buttons for undo/redo/reset/flip/threats.
+   Buttons are arranged horizontally with a small gap. */
+#controls {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+/* Generic styling for control buttons.  The buttons are compact squares
+   with a subtle border and background. */
+#controls .control-btn {
+  width: 36px;
+  height: 36px;
+  padding: 4px;
   border: 2px solid #444;
+  border-radius: 4px;
   background-color: #fff;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background-color 0.2s;
 }
 
-#controls button:hover,
-#move-list-container button:hover {
+#controls .control-btn:hover {
   background-color: #f0f0f0;
 }
 
-/* Position the undo button below the move list */
-#move-list-container button {
-  margin-top: 10px;
-  width: 100%;
+/* Icons inside control buttons should scale proportionally within the button. */
+#controls .control-btn img {
+  width: 80%;
+  height: 80%;
+  pointer-events: none;
 }
 
 /* Responsive layout: stack the board and move list vertically on narrow screens */

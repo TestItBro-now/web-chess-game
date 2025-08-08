@@ -23,6 +23,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Flag to indicate when the AI is thinking or animating a move.
   let aiThinking = false;
 
+  // Stack of moves that have been undone.  When the player undoes a move
+  // (using the undo button) the move is pushed onto this stack.  Redoing
+  // a move pops it from the stack and applies it again.  When a new
+  // move is played, the redo stack is cleared.
+  let redoStack = [];
+
+  // Flag controlling whether to display threat arrows for the opponent's
+  // potential captures and checking moves.  Toggled via the threat
+  // button in the UI.
+  let showThreats = false;
+
   // Track whether the board is currently flipped.  When true, the
   // visual orientation of the board is reversed.  The internal chess.js
   // state is unaffected.
@@ -48,9 +59,13 @@ document.addEventListener('DOMContentLoaded', () => {
     flipped = false;
     renderBoard();
     updateMoveList();
+    // Refresh threat arrows (clears overlay because no moves have been played yet)
+    updateThreatOverlay();
     if (aiColor === 'w') {
       triggerAiMove();
     }
+    // Clear redo history on reset
+    redoStack = [];
   }
 
   /**
@@ -71,11 +86,160 @@ document.addEventListener('DOMContentLoaded', () => {
     if (aiThinking) return;
     const undone = game.undo();
     if (!undone) return;
+    // Push the undone move onto the redo stack so it can be replayed
+    redoStack.push(undone);
     selectedSquare = null;
     possibleMoves = [];
     aiThinking = false;
     renderBoard();
     updateMoveList();
+    updateThreatOverlay();
+  }
+
+  /**
+   * Redo the most recently undone move, if one exists.  If the AI is
+   * currently thinking or there is nothing to redo, this function does
+   * nothing.  Replaying a move clears any selected squares and refreshes
+   * the board and move list.
+   */
+  function redoMove() {
+    if (aiThinking || redoStack.length === 0) return;
+    const move = redoStack.pop();
+    // Apply the move exactly as it was undone.  Chess.js allows passing
+    // the move object returned by undo() directly to move().
+    game.move(move);
+    selectedSquare = null;
+    possibleMoves = [];
+    renderBoard();
+    updateMoveList();
+    updateThreatOverlay();
+  }
+
+  /**
+   * Toggle the display of opponent threats.  When enabled, arrows are
+   * drawn on top of the board showing capturing moves (red) and moves
+   * that would give check (orange) from the opponent's pieces.  The
+   * overlay is cleared when disabled.
+   */
+  function toggleThreats() {
+    showThreats = !showThreats;
+    updateThreatOverlay();
+  }
+
+  /**
+   * Create the SVG overlay for threat arrows if it does not already
+   * exist.  The overlay uses absolute positioning to sit on top of
+   * the board container and defines markers for red and orange
+   * arrowheads.  This function should only be called once during
+   * initialisation.
+   */
+  function initThreatOverlay() {
+    let overlay = document.getElementById('threat-overlay');
+    if (overlay) return;
+    overlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    overlay.setAttribute('id', 'threat-overlay');
+    overlay.setAttribute('width', '100%');
+    overlay.setAttribute('height', '100%');
+    overlay.style.position = 'absolute';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.pointerEvents = 'none';
+    // Ensure the overlay appears above the board squares and below any
+    // animating piece by assigning a z-index between them.  The board
+    // squares have default stacking (0) and .anim-piece uses z-index 10
+    // in CSS, so choose an intermediate value here.
+    overlay.style.zIndex = '5';
+    // Define arrowhead markers
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    function createMarker(id, color) {
+      const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+      marker.setAttribute('id', id);
+      marker.setAttribute('markerWidth', '8');
+      marker.setAttribute('markerHeight', '8');
+      marker.setAttribute('refX', '6');
+      marker.setAttribute('refY', '3');
+      marker.setAttribute('orient', 'auto');
+      marker.setAttribute('markerUnits', 'strokeWidth');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M0,0 L6,3 L0,6 Z');
+      path.setAttribute('fill', color);
+      marker.appendChild(path);
+      defs.appendChild(marker);
+    }
+    createMarker('arrow-red', '#f44336');
+    createMarker('arrow-orange', '#ff9800');
+    overlay.appendChild(defs);
+    boardContainer.appendChild(overlay);
+  }
+
+  /**
+   * Compute and draw threat arrows for the opponent.  Arrows are drawn
+   * from the threatening piece to the target square.  Capture moves are
+   * coloured red and potential checking moves are coloured orange.
+   */
+  function updateThreatOverlay() {
+    const overlay = document.getElementById('threat-overlay');
+    if (!overlay) return;
+    // Clear existing arrows
+    overlay.innerHTML = overlay.innerHTML.split('</defs>')[0] + '</defs>';
+    if (!showThreats) return;
+    // Determine which colour is the opponent
+    const opponent = playerColor === 'w' ? 'b' : 'w';
+    const boardState = game.board();
+    // Build a lookup map of DOM squares
+    const squares = Array.from(boardContainer.children);
+    const boardRect = boardContainer.getBoundingClientRect();
+    function squareCenter(name) {
+      const el = squares.find(el => el.dataset.square === name);
+      if (!el) return null;
+      const rect = el.getBoundingClientRect();
+      return {
+        x: rect.left - boardRect.left + rect.width / 2,
+        y: rect.top - boardRect.top + rect.height / 2
+      };
+    }
+    // Collect threat lines
+    const threats = [];
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const piece = boardState[r][c];
+        if (piece && piece.color === opponent) {
+          const fromSquare = 'abcdefgh'[c] + (8 - r);
+          const moves = game.moves({ square: fromSquare, verbose: true });
+          moves.forEach(move => {
+            // Capture threat
+            if (move.flags.includes('c')) {
+              threats.push({ from: move.from, to: move.to, type: 'capture' });
+            }
+            // Check threat: simulate move and see if it results in a check on the player
+            game.move(move);
+            // After the move, it's the player's turn.  If the player is in check,
+            // then the move gives check.
+            if (game.in_check() && game.turn() === playerColor) {
+              threats.push({ from: move.from, to: move.to, type: 'check' });
+            }
+            game.undo();
+          });
+        }
+      }
+    }
+    // Draw arrows
+    threats.forEach(th => {
+      const start = squareCenter(th.from);
+      const end = squareCenter(th.to);
+      if (!start || !end) return;
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', start.x);
+      line.setAttribute('y1', start.y);
+      line.setAttribute('x2', end.x);
+      line.setAttribute('y2', end.y);
+      line.setAttribute('stroke', th.type === 'capture' ? '#f44336' : '#ff9800');
+      line.setAttribute('stroke-width', '3');
+      line.setAttribute('fill', 'none');
+      const markerId = th.type === 'capture' ? 'arrow-red' : 'arrow-orange';
+      line.setAttribute('marker-end', `url(#${markerId})`);
+      overlay.appendChild(line);
+    });
   }
 
   /**
@@ -240,6 +404,10 @@ document.addEventListener('DOMContentLoaded', () => {
     updateMoveList();
     // Verify DOM board matches internal state; re‑render if mismatch
     verifyBoard();
+    // Refresh the threat overlay whenever the board changes.  This
+    // ensures arrows are redrawn in the correct positions and
+    // cleared if the feature is disabled.
+    updateThreatOverlay();
   }
 
   /**
@@ -278,9 +446,14 @@ document.addEventListener('DOMContentLoaded', () => {
       game.move({ from: selectedSquare, to: square, promotion });
       selectedSquare = null;
       possibleMoves = [];
+      // Clear any redo history because a new move invalidates the
+      // ability to replay previously undone moves.
+      redoStack = [];
       renderBoard();
       // After the human moves, update move list and trigger AI response.
       updateMoveList();
+      // Refresh threat arrows to show the new opponent threats.
+      updateThreatOverlay();
       triggerAiMove();
       return;
     }
@@ -289,10 +462,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const moves = game.moves({ square: square, verbose: true });
       possibleMoves = moves.map(move => move.to);
       renderBoard();
+      // Highlight available moves but do not alter the redo stack
+      // here.  Threat overlay refresh happens inside renderBoard().
     } else {
       selectedSquare = null;
       possibleMoves = [];
       renderBoard();
+      // Also refresh threat overlay when deselecting a square
+      updateThreatOverlay();
     }
   }
 
@@ -358,7 +535,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // there is no need to query computed styles before the element is
     // attached to the DOM (which may return 0).  Use the known size
     // directly so the animation centres correctly.
-    const imgSize = 40;
+    // Determine the image size consistent with CSS (piece-img uses
+    // 67% of the square size).  This allows the animation to adapt
+    // when the board is responsive.
+    const imgSize = squareSize * 0.67;
     // Position the moving piece at the centre of the from square relative to the board
     movingPiece.style.left = (fromRect.left - boardRect.left + squareSize / 2 - imgSize / 2) + 'px';
     movingPiece.style.top = (fromRect.top - boardRect.top + squareSize / 2 - imgSize / 2) + 'px';
@@ -403,9 +583,13 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedSquare = null;
         possibleMoves = [];
         aiThinking = false;
+        // Clear the redo history since a new move has been played
+        redoStack = [];
         renderBoard();
         // Update move list after AI moves
         updateMoveList();
+        // Refresh threats after the AI move
+        updateThreatOverlay();
       });
     }, 400);
   }
@@ -425,4 +609,22 @@ document.addEventListener('DOMContentLoaded', () => {
   if (flipButton) flipButton.addEventListener('click', flipBoard);
   const undoButton = document.getElementById('undo-btn');
   if (undoButton) undoButton.addEventListener('click', undoLastMove);
+
+  // Attach handlers for the new redo and threat toggle buttons.  When
+  // replaying moves, invoke redoMove().  When toggling threat
+  // highlights, invoke toggleThreats().  Use optional chaining to
+  // gracefully handle missing elements.
+  const redoButton = document.getElementById('redo-btn');
+  if (redoButton) redoButton.addEventListener('click', redoMove);
+  const threatButton = document.getElementById('threat-btn');
+  if (threatButton) threatButton.addEventListener('click', toggleThreats);
+
+  // Create the SVG overlay used for drawing threat arrows.  This
+  // function checks if the overlay already exists before creating
+  // a new one, so it is safe to call multiple times.  Initialise
+  // immediately after the DOM is ready so that threat arrows can
+  // be drawn as soon as the user toggles the feature.
+  initThreatOverlay();
+  // Initially update the overlay (will show nothing until toggled on).
+  updateThreatOverlay();
 });

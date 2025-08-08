@@ -10,21 +10,27 @@
   <h1>Web Chess Game</h1>
   <div id="status"></div>
   <div id="game-container">
-    <div id="board"></div>
+    <!-- Board wrapper holds the controls along the top and the chessboard below.  The
+         controls remain aligned above the board regardless of how long the move list
+         becomes. -->
+    <div id="board-wrapper">
+      <div id="controls">
+        <!-- Each control button uses a small icon instead of text.  The icons are
+             stored in the icons/ directory and will be uploaded to the repository. -->
+        <button id="undo-btn" title="Undo last move" class="control-btn"><img src="icons/undo.png" alt="Undo"></button>
+        <button id="redo-btn" title="Redo move" class="control-btn"><img src="icons/redo.png" alt="Redo"></button>
+        <button id="reset-btn" title="Start a new game" class="control-btn"><img src="icons/reset.png" alt="Reset"></button>
+        <button id="flip-btn" title="Flip board orientation" class="control-btn"><img src="icons/flip.png" alt="Flip"></button>
+        <button id="threat-btn" title="Toggle opponent threats" class="control-btn"><img src="icons/threat.png" alt="Threats"></button>
+      </div>
+      <div id="board"></div>
+    </div>
+    <!-- Move list container sits to the right of the board on wider screens and
+         below the board on narrow screens.  It no longer contains the undo
+         button since undo/redo controls now live above the board. -->
     <div id="move-list-container">
       <h2>Moves</h2>
-      <!-- Ordered list will display moves in standard algebraic notation. -->
       <ol id="move-list"></ol>
-      <!-- Back arrow to undo the previous move.  This button sits below
-           the move list and uses a Unicode arrow for its label. -->
-      <button id="undo-btn" title="Und&#x21A9; Undo Undo</button>
-    </div>
-    <!-- Controls container holds buttons for resetting the game and flipping
-         the board.  These appear alongside the board and move list on
-         larger screens and stack vertically on small screens. -->
-    <div id="controls">
-      <button id="reset-btn" title="Start a new game">Reset Game</button>
-      <button id="flip-btn" title="Flip the board orientation">Flip Board</button>
     </div>
   </div>
 

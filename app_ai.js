@@ -105,9 +105,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function redoMove() {
     if (aiThinking || redoStack.length === 0) return;
     const move = redoStack.pop();
-    // Apply the move exactly as it was undone.  Chess.js allows passing
-    // the move object returned by undo() directly to move().
-    game.move(move);
+    // Apply the move exactly as it was undone.  Construct a minimal
+    // move object containing only the fields accepted by chess.js: from,
+    // to and promotion.  The move returned by undo() contains
+    // additional metadata but can still be used to populate these
+    // fields.  When promotion is undefined, omit the field.
+    const redoObj = { from: move.from, to: move.to };
+    if (move.promotion) {
+      redoObj.promotion = move.promotion;
+    }
+    game.move(redoObj);
     selectedSquare = null;
     possibleMoves = [];
     renderBoard();

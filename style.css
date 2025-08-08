@@ -110,21 +110,37 @@ h1 {
   background-color: #b79263;
 }
 
-/* Highlight when a piece is selected.  Use a static semi‑transparent blue
-   tint.  The transition on .square will smoothly fade between normal and
-   highlighted states. */
+/*
+ * Fade‑in highlights for selected, move and capture squares.  When one
+ * of these classes is added to a square, the background colour
+ * transitions from transparent to the tinted colour exactly once,
+ * leaving the final colour in place.  The animations run once per
+ * application and do not loop.
+ */
+@keyframes selectedFade {
+  from { background-color: transparent; }
+  to   { background-color: rgba(74, 163, 223, 0.5); }
+}
+@keyframes moveFade {
+  from { background-color: transparent; }
+  to   { background-color: rgba(76, 175, 80, 0.5); }
+}
+@keyframes captureFade {
+  from { background-color: transparent; }
+  to   { background-color: rgba(229, 57, 53, 0.5); }
+}
+
+/* Apply the fade animations.  The animation names correspond to the
+   appropriate tint and run forwards exactly once, leaving the square
+   tinted after completing. */
 .selected {
-  background-color: rgba(74, 163, 223, 0.5);
+  animation: selectedFade 0.3s forwards;
 }
-
-/* Tint valid move squares with a green shade. */
 .move {
-  background-color: rgba(76, 175, 80, 0.5);
+  animation: moveFade 0.3s forwards;
 }
-
-/* Tint capture moves with a red shade. */
 .capture {
-  background-color: rgba(229, 57, 53, 0.5);
+  animation: captureFade 0.3s forwards;
 }
 
 /* Highlight the king’s square when in check */

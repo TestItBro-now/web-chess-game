@@ -12,6 +12,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const boardContainer = document.getElementById('board');
   const statusEl = document.getElementById('status');
+  const moveListEl = document.getElementById('move-list');
   const game = new Chess();
 
   // Randomly assign the human and AI colours.  'w' denotes white and
@@ -24,6 +25,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let selectedSquare = null;
   let possibleMoves = [];
+
+  /**
+   * Update the move list display on the right of the board.  Chess.js
+   * provides a history of moves in standard algebraic notation.  The
+   * list is cleared and repopulated each time to reflect the current
+   * game history.  Moves are numbered with White and Black sharing
+   * the same turn number.  For example: "1. e4 e5".
+   */
+  function updateMoveList() {
+    if (!moveListEl) return;
+    // Clear existing list
+    moveListEl.innerHTML = '';
+    const history = game.history();
+    // History is a flat array of SAN strings.  Group into pairs
+    for (let i = 0; i < history.length; i += 2) {
+      const turnNumber = i / 2 + 1;
+      const whiteMove = history[i] || '';
+      const blackMove = history[i + 1] || '';
+      const li = document.createElement('li');
+      li.textContent = `${turnNumber}. ${whiteMove}${blackMove ? ' ' + blackMove : ''}`;
+      moveListEl.appendChild(li);
+    }
+  }
+
+  /**
+   * Verify that the board rendered in the DOM matches the internal
+   * chess.js board state.  If a mismatch is detected (e.g. a piece
+   * appears on the wrong square), the board is re‑rendered from
+   * scratch.  This helps guard against rare bugs where pieces
+   * "teleport" due to stale DOM state.
+   */
+  function verifyBoard() {
+    const boardState = game.board();
+    const squares = Array.from(boardContainer.children);
+    let mismatch = false;
+    if (squares.length !== 64) {
+      mismatch = true;
+    } else {
+      for (let row = 0; row < 8 && !mismatch; row++) {
+        for (let col = 0; col < 8; col++) {
+          const squareName = 'abcdefgh'[col] + (8 - row);
+          const squareEl = squares.find(el => el.dataset.square === squareName);
+          const piece = boardState[row][col];
+          if (piece) {
+            // Expect an <img> element inside the square
+            if (!squareEl || !squareEl.querySelector('img')) {
+              mismatch = true;
+              break;
+            }
+          } else {
+            // Expect no image when no piece
+            if (squareEl && squareEl.querySelector('img')) {
+              mismatch = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+    if (mismatch) {
+      renderBoard();
+    }
+  }
 
   // Inline images for each chess piece.  Embedding the PNGs as data
   // URIs avoids the need to fetch separate files from the server and
@@ -114,6 +178,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     updateStatus();
+    // Update the move list to reflect current history
+    updateMoveList();
+    // Verify DOM board matches internal state; re‑render if mismatch
+    verifyBoard();
   }
 
   /**
@@ -153,7 +221,8 @@ document.addEventListener('DOMContentLoaded', () => {
       selectedSquare = null;
       possibleMoves = [];
       renderBoard();
-      // After the human moves, trigger the AI response.
+      // After the human moves, update move list and trigger AI response.
+      updateMoveList();
       triggerAiMove();
       return;
     }
@@ -264,15 +333,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       const move = legalMoves[Math.floor(Math.random() * legalMoves.length)];
-      selectedSquare = move.from;
-      possibleMoves = [move.to];
-      renderBoard();
+      // Do not show highlights for the AI's move; clear any human highlights.
+      selectedSquare = null;
+      possibleMoves = [];
       animateAIMove(move, () => {
         game.move({ from: move.from, to: move.to, promotion: move.promotion });
         selectedSquare = null;
         possibleMoves = [];
         aiThinking = false;
         renderBoard();
+        // Update move list after AI moves
+        updateMoveList();
       });
     }, 400);
   }

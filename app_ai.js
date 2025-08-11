@@ -513,9 +513,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const humanColorName = playerColor === 'w' ? 'White' : 'Black';
     status += `You are playing ${humanColorName}.\n`;
     const moveColor = game.turn() === 'w' ? 'White' : 'Black';
-    if (game.inCheckmate()) {
+    if (game.isCheckmate()) {
       status += `Game over: ${moveColor} is in checkmate.`;
-    } else if (game.inDraw()) {
+    } else if (game.isDraw()) {
       status += 'Game over: draw.';
     } else {
       status += `${moveColor} to move.`;
@@ -597,7 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
    * it and then applies it to the game state.
    */
   function triggerAiMove() {
-    if (game.turn() !== aiColor || game.gameOver()) return;
+    if (game.turn() !== aiColor || game.isGameOver()) return;
     aiThinking = true;
     setTimeout(() => {
       const legalMoves = game.moves({ verbose: true });

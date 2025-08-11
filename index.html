@@ -45,9 +45,9 @@
 <script type="module">
   import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.4.0/dist/esm/chess.js';
   window.Chess = Chess;
+  // Now load your app AFTER Chess is ready:
+  import './app_ai.js';  
 </script>
 
-<!-- Load your game logic after the module has defined window.Chess -->
-<script src="app_ai.js" defer></script>
 </body>
 </html>

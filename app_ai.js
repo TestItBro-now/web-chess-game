@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
             game.move(move);
             // After the move, it's the player's turn.  If the player is in check,
             // then the move gives check.
-            if (game.in_check() && game.turn() === playerColor) {
+            if (game.inCheck() && game.turn() === playerColor) {
               threats.push({ from: move.from, to: move.to, type: 'check' });
             }
             game.undo();
@@ -375,7 +375,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Determine if the current player's king is in check so we can
     // highlight the square.
     let checkSquare = null;
-    if (game.in_check()) {
+    if (game.inCheck()) {
       const turn = game.turn();
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
@@ -513,13 +513,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const humanColorName = playerColor === 'w' ? 'White' : 'Black';
     status += `You are playing ${humanColorName}.\n`;
     const moveColor = game.turn() === 'w' ? 'White' : 'Black';
-    if (game.in_checkmate()) {
+    if (game.inCheckmate()) {
       status += `Game over: ${moveColor} is in checkmate.`;
-    } else if (game.in_draw()) {
+    } else if (game.inDraw()) {
       status += 'Game over: draw.';
     } else {
       status += `${moveColor} to move.`;
-      if (game.in_check()) {
+      if (game.inCheck()) {
         status += ' (Check!)';
       }
     }
@@ -597,7 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
    * it and then applies it to the game state.
    */
   function triggerAiMove() {
-    if (game.turn() !== aiColor || game.game_over()) return;
+    if (game.turn() !== aiColor || game.gameOver()) return;
     aiThinking = true;
     setTimeout(() => {
       const legalMoves = game.moves({ verbose: true });
